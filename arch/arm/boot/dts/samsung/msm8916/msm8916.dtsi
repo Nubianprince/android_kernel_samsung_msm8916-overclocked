@@ -398,15 +398,14 @@
 			<  998400000 5>,
 			< 1094400000 6>,
 			< 1152000000 7>,
-			< 1209600000 8>,
+            < 1209600000 8>,
 			< 1363200000 9>,
 			< 1401600000 10>,
 			< 1478400000 11>,
 			< 1612800000 12>;
 	};
 
-	cpubw: qcom,cpubw@0 {
-		reg = <0 4>;
+	cpubw: qcom,cpubw {
 		compatible = "qcom,devbw";
 		governor = "cpufreq";
 		qcom,src-dst-ports = <1 512>;
@@ -698,7 +697,7 @@
 
 		qcom,bus-width = <8>;
 
-		qcom,cpu-dma-latency-us = <200>;
+		qcom,cpu-dma-latency-us = <2 401 701>;
 		qcom,msm-bus,name = "sdhc1";
 		qcom,msm-bus,num-cases = <8>;
 		qcom,msm-bus,num-paths = <1>;
@@ -732,7 +731,7 @@
 
 		qcom,bus-width = <4>;
 
-		qcom,cpu-dma-latency-us = <200>;
+		qcom,cpu-dma-latency-us = <701>;
 		qcom,msm-bus,name = "sdhc2";
 		qcom,msm-bus,num-cases = <8>;
 		qcom,msm-bus,num-paths = <1>;
@@ -796,6 +795,7 @@
 		qcom,use-sw-hmac-algo;
 		qcom,use-sw-aead-algo;
 		status = "disabled";
+		qcom,ce-opp-freq = <100000000>;
 	};
 
 	qcom_cedev: qcedev@720000 {
@@ -821,6 +821,7 @@
 		clock-names = "core_clk_src", "core_clk",
 				"iface_clk", "bus_clk";
 		status = "disabled";
+		qcom,ce-opp-freq = <100000000>;
 	};
 
 	qcom_seecom: qseecom@86000000 {
@@ -847,6 +848,7 @@
 		clock-names = "core_clk_src", "core_clk",
 				"iface_clk", "bus_clk";
 		status = "disabled";
+		qcom,ce-opp-freq = <100000000>;
 	};
 
 	qcom,wdt@b017000 {
@@ -968,6 +970,7 @@
 		compatible = "qcom,msm-pcm-dsp";
 		qcom,msm-pcm-dsp-id = <1>;
 		qcom,msm-pcm-low-latency;
+		qcom,latency-level = "ultra";
 	};
 
 	lpa: qcom,msm-pcm-lpa {
@@ -1099,11 +1102,11 @@
 			compatible = "qcom,msm-dai-q6-dev";
 			qcom,msm-dai-q6-dev-id = <12289>;
 		};
-		
+
 		bt_a2dp_rx: qcom,msm-dai-q6-bt-a2dp-rx {
 			compatible = "qcom,msm-dai-q6-dev";
 			qcom,msm-dai-q6-dev-id = <12290>;
-		};		
+		};
 
 		int_fm_rx: qcom,msm-dai-q6-int-fm-rx {
 			compatible = "qcom,msm-dai-q6-dev";
@@ -1520,7 +1523,7 @@
 		clocks = <&clock_gcc clk_gcc_blsp1_ahb_clk>,
 			 <&clock_gcc clk_gcc_blsp1_qup2_i2c_apps_clk>;
 		clock-names = "iface_clk", "core_clk";
-		qcom,clk-freq-out = <100000>;
+		qcom,clk-freq-out = <400000>;
 		qcom,clk-freq-in  = <19200000>;
 		pinctrl-names = "i2c_active", "i2c_sleep";
 		pinctrl-0 = <&i2c_0_active>;
@@ -1704,7 +1707,7 @@
 		qcom,pas-id = <9>;
 		qcom,proxy-timeout-ms = <100>;
 		qcom,firmware-name = "venus";
-		linux,contiguous-region = <&venus_mem>;
+		linux,contiguous-region = <&venus_qseecom_mem>;
 	};
 
 	qcom,msm-thermal {
@@ -1726,6 +1729,9 @@
 		qcom,freq-mitigation-temp-hysteresis = <15>;
 		qcom,freq-mitigation-value = <400000>;
 		qcom,freq-mitigation-control-mask = <0x01>;
+		qcom,online-hotplug-core;
+		qcom,synchronous-cluster-id = <0>;
+		qcom,synchronous-cluster-map = <0 4 &CPU0 &CPU1 &CPU2 &CPU3>;
 		qcom,vdd-restriction-temp = <5>;
 		qcom,vdd-restriction-temp-hysteresis = <10>;
 		vdd-dig-supply = <&pm8916_s1_floor_corner>;
@@ -1747,7 +1753,7 @@
 		compatible = "qcom,memshare";
 
 		qcom,client_1 {
-			compatible = "memshare,peripheral";
+			compatible = "qcom,memshare-peripheral";
 			qcom,peripheral-size = <2097152>;
 			label = "modem";
 		};
@@ -1877,9 +1883,9 @@
 					<63 512 0 0>,
 					<63 512 99600 831900>, /* VGA 30 fps */
 					<63 512 298900 831900>, /* VGA 60 fps */
-					<63 512 298900 3000000>, /* 720p 30 fps */
-					<63 512 677600 3000000>, /* 720p 60 fps */
-					<63 512 677600 3000000>; /* 1080p 30 fps */
+					<63 512 298900 831900>, /* 720p 30 fps */
+					<63 512 677600 1331000>, /* 720p 60 fps */
+					<63 512 677600 1331000>; /* 1080p 30 fps */
 				qcom,bus-configs = <0x030fcfff>;
 			};
 			qcom,msm-bus-client@2 {
@@ -2304,3 +2310,4 @@
 		/* If you need to add new key type, add it this position */
 	};
 };
+

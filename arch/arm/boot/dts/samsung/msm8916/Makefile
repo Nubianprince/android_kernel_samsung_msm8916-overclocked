@@ -201,6 +201,20 @@ ifeq ($(CONFIG_SEC_J3_PROJECT),y)
 	endif
 endif
 
+ifeq ($(CONFIG_SEC_J3XPRO_PROJECT),y)
+	ifeq ($(CONFIG_MACH_J3XPROLTE_CHN_OPEN),y)
+		dtb-y += msm8916-sec-j3xprolte-chnopen-r00.dtb
+		dtb-y += msm8916-sec-j3xprolte-chnopen-r01.dtb
+		dtb-y += msm8916-sec-j3xprolte-chnopen-r02.dtb
+		dtb-y += msm8916-sec-j3xprolte-chnopen-r03.dtb
+	else ifeq ($(CONFIG_MACH_J3XPROLTE_CHN_CTC),y)
+		dtb-y += msm8916-sec-j3xprolte-chnctc-r00.dtb
+		dtb-y += msm8916-sec-j3xprolte-chnctc-r01.dtb
+		dtb-y += msm8916-sec-j3xprolte-chnctc-r02.dtb
+		dtb-y += msm8916-sec-j3xprolte-chnctc-r03.dtb
+	endif
+endif
+
 ifeq ($(CONFIG_SEC_E5_PROJECT),y)
 	ifeq ($(CONFIG_MACH_E5_EUR_OPEN),y)
 		dtb-y += msm8916-sec-e5-r00.dtb
@@ -420,6 +434,8 @@ endif
 ifeq ($(CONFIG_SEC_J5X_PROJECT),y)
 	ifeq ($(CONFIG_MACH_J5XLTE_CHN_CMCC),y)
 		dtb-y += msm8916-sec-j5xlte-chn-r00.dtb
+		dtb-y += msm8916-sec-j5xlte-chn-r02.dtb
+		dtb-y += msm8916-sec-j5xlte-chn-r03.dtb
 	else ifeq ($(CONFIG_MACH_J5XLTE_EUR_OPEN),y)
 		dtb-y += msm8916-sec-j5xlte-eur-r00.dtb
 		dtb-y += msm8916-sec-j5xlte-eur-r01.dtb
