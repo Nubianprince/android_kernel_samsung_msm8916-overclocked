@@ -17,12 +17,11 @@
 #ifndef __LINUX_PSTORE_RAM_H__
 #define __LINUX_PSTORE_RAM_H__
 
-#include <linux/compiler.h>
 #include <linux/device.h>
-#include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/list.h>
 #include <linux/types.h>
+#include <linux/init.h>
 
 struct persistent_ram_buffer;
 struct rs_control;
@@ -54,15 +53,12 @@ struct persistent_ram_zone {
 };
 
 struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
-			u32 sig, struct persistent_ram_ecc_info *ecc_info,
-			unsigned int memtype);
+			u32 sig, struct persistent_ram_ecc_info *ecc_info);
 void persistent_ram_free(struct persistent_ram_zone *prz);
 void persistent_ram_zap(struct persistent_ram_zone *prz);
 
 int persistent_ram_write(struct persistent_ram_zone *prz, const void *s,
-			 unsigned int count);
-int persistent_ram_write_user(struct persistent_ram_zone *prz,
-			      const void __user *s, unsigned int count);
+	unsigned int count);
 
 void persistent_ram_save_old(struct persistent_ram_zone *prz);
 size_t persistent_ram_old_size(struct persistent_ram_zone *prz);
@@ -70,15 +66,6 @@ void *persistent_ram_old(struct persistent_ram_zone *prz);
 void persistent_ram_free_old(struct persistent_ram_zone *prz);
 ssize_t persistent_ram_ecc_string(struct persistent_ram_zone *prz,
 	char *str, size_t len);
-#ifdef CONFIG_PSTORE_RAM_ANNOTATION_APPEND
-__printf(1, 2)  int persistent_ram_annotation_append(const char *fmt, ...);
-void persistent_ram_annotation_merge(struct persistent_ram_zone *prz);
-#else
-static inline __printf(1, 2) void persistent_ram_annotation_append(
-			const char *fmt, ...) { };
-static inline void persistent_ram_annotation_merge(
-			struct persistent_ram_zone *prz) { };
-#endif
 
 void ramoops_console_write_buf(const char *buf, size_t size);
 
@@ -91,11 +78,9 @@ void ramoops_console_write_buf(const char *buf, size_t size);
 struct ramoops_platform_data {
 	unsigned long	mem_size;
 	unsigned long	mem_address;
-	unsigned int	mem_type;
 	unsigned long	record_size;
 	unsigned long	console_size;
 	unsigned long	ftrace_size;
-	unsigned long	annotate_size;
 	unsigned long	pmsg_size;
 	int		dump_oops;
 	struct persistent_ram_ecc_info ecc_info;

@@ -677,6 +677,10 @@ static inline void security_free_mnt_opts(struct security_mnt_opts *opts)
  *	@new points to the new credentials.
  *	@old points to the original credentials.
  *	Transfer data from original creds to new creds
+ * @cred_getsecid:
+ *  Retrieve the security identifier of the cred structure @c
+ *  @c contains the credentials, secid will be placed into @secid.
+ *  In case of failure, @secid will be set to zero.
  * @kernel_act_as:
  *	Set the credentials for a kernel service to act as (subjective context).
  *	@new points to the credentials to be modified.
@@ -1040,25 +1044,17 @@ static inline void security_free_mnt_opts(struct security_mnt_opts *opts)
  * @xfrm_policy_delete_security:
  *	@ctx contains the xfrm_sec_ctx.
  *	Authorize deletion of xp->security.
- * @xfrm_state_alloc:
+ * @xfrm_state_alloc_security:
  *	@x contains the xfrm_state being added to the Security Association
  *	Database by the XFRM system.
  *	@sec_ctx contains the security context information being provided by
  *	the user-level SA generation program (e.g., setkey or racoon).
+ *	@secid contains the secid from which to take the mls portion of the context.
  *	Allocate a security structure to the x->security field; the security
  *	field is initialized to NULL when the xfrm_state is allocated. Set the
- *	context to correspond to sec_ctx. Return 0 if operation was successful
- *	(memory to allocate, legal context).
- * @xfrm_state_alloc_acquire:
- *	@x contains the xfrm_state being added to the Security Association
- *	Database by the XFRM system.
- *	@polsec contains the policy's security context.
- *	@secid contains the secid from which to take the mls portion of the
- *	context.
- *	Allocate a security structure to the x->security field; the security
- *	field is initialized to NULL when the xfrm_state is allocated. Set the
- *	context to correspond to secid. Return 0 if operation was successful
- *	(memory to allocate, legal context).
+ *	context to correspond to either sec_ctx or polsec, with the mls portion
+ *	taken from secid in the latter case.
+ *	Return 0 if operation was successful (memory to allocate, legal context).
  * @xfrm_state_free_security:
  *	@x contains the xfrm_state.
  *	Deallocate x->security.
@@ -1479,7 +1475,7 @@ struct security_operations {
 	int (*inode_alloc_security) (struct inode *inode);
 	void (*inode_free_security) (struct inode *inode);
 	int (*inode_init_security) (struct inode *inode, struct inode *dir,
-				    const struct qstr *qstr, const char **name,
+				    const struct qstr *qstr, char **name,
 				    void **value, size_t *len);
 	int (*inode_create) (struct inode *dir,
 			     struct dentry *dentry, umode_t mode);
@@ -1545,6 +1541,7 @@ struct security_operations {
 	int (*cred_prepare)(struct cred *new, const struct cred *old,
 			    gfp_t gfp);
 	void (*cred_transfer)(struct cred *new, const struct cred *old);
+    void (*cred_getsecid)(const struct cred *c, u32 *secid);
 	int (*kernel_act_as)(struct cred *new, u32 secid);
 	int (*kernel_create_files_as)(struct cred *new, struct inode *inode);
 	int (*kernel_module_request)(char *kmod_name);
@@ -1669,11 +1666,9 @@ struct security_operations {
 	int (*xfrm_policy_clone_security) (struct xfrm_sec_ctx *old_ctx, struct xfrm_sec_ctx **new_ctx);
 	void (*xfrm_policy_free_security) (struct xfrm_sec_ctx *ctx);
 	int (*xfrm_policy_delete_security) (struct xfrm_sec_ctx *ctx);
-	int (*xfrm_state_alloc) (struct xfrm_state *x,
-				 struct xfrm_user_sec_ctx *sec_ctx);
-	int (*xfrm_state_alloc_acquire) (struct xfrm_state *x,
-					 struct xfrm_sec_ctx *polsec,
-					 u32 secid);
+	int (*xfrm_state_alloc_security) (struct xfrm_state *x,
+		struct xfrm_user_sec_ctx *sec_ctx,
+		u32 secid);
 	void (*xfrm_state_free_security) (struct xfrm_state *x);
 	int (*xfrm_state_delete_security) (struct xfrm_state *x);
 	int (*xfrm_policy_lookup) (struct xfrm_sec_ctx *ctx, u32 fl_secid, u8 dir);
@@ -1760,7 +1755,7 @@ int security_inode_init_security(struct inode *inode, struct inode *dir,
 				 const struct qstr *qstr,
 				 initxattrs initxattrs, void *fs_data);
 int security_old_inode_init_security(struct inode *inode, struct inode *dir,
-				     const struct qstr *qstr, const char **name,
+				     const struct qstr *qstr, char **name,
 				     void **value, size_t *len);
 int security_inode_create(struct inode *dir, struct dentry *dentry, umode_t mode);
 int security_inode_post_create(struct inode *dir, struct dentry *dentry,
@@ -1818,6 +1813,7 @@ int security_cred_alloc_blank(struct cred *cred, gfp_t gfp);
 void security_cred_free(struct cred *cred);
 int security_prepare_creds(struct cred *new, const struct cred *old, gfp_t gfp);
 void security_transfer_creds(struct cred *new, const struct cred *old);
+void security_cred_getsecid(const struct cred *c, u32 *secid);
 int security_kernel_act_as(struct cred *new, u32 secid);
 int security_kernel_create_files_as(struct cred *new, struct inode *inode);
 int security_kernel_module_request(char *kmod_name);
@@ -2096,8 +2092,8 @@ static inline int security_inode_init_security(struct inode *inode,
 static inline int security_old_inode_init_security(struct inode *inode,
 						   struct inode *dir,
 						   const struct qstr *qstr,
-						   const char **name,
-						   void **value, size_t *len)
+						   char **name, void **value,
+						   size_t *len)
 {
 	return -EOPNOTSUPP;
 }
@@ -2357,6 +2353,12 @@ static inline void security_transfer_creds(struct cred *new,
 					   const struct cred *old)
 {
 }
+
+static inline void security_cred_getsecid(const struct cred *c, u32 *secid)
+{
+    *secid = 0;
+}
+
 
 static inline int security_kernel_act_as(struct cred *cred, u32 secid)
 {

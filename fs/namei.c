@@ -3032,14 +3032,8 @@ static int do_tmpfile(int dfd, struct filename *pathname,
 	if (error)
 		goto out2;
 	error = open_check_o_direct(file);
-	if (error) {
+	if (error)
 		fput(file);
-	} else if (!(op->open_flag & O_EXCL)) {
-		struct inode *inode = file_inode(file);
-		spin_lock(&inode->i_lock);
-		inode->i_state |= I_LINKABLE;
-		spin_unlock(&inode->i_lock);
-	}
 out2:
 	mnt_drop_write(nd->path.mnt);
 out:
@@ -3761,18 +3755,12 @@ int vfs_link2(struct vfsmount *mnt, struct dentry *old_dentry, struct inode *dir
 
 	mutex_lock(&inode->i_mutex);
 	/* Make sure we don't allow creating hardlink to an unlinked file */
-	if (inode->i_nlink == 0 && !(inode->i_state & I_LINKABLE))
+	if (inode->i_nlink == 0)
 		error =  -ENOENT;
 	else if (max_links && inode->i_nlink >= max_links)
 		error = -EMLINK;
 	else
 		error = dir->i_op->link(old_dentry, dir, new_dentry);
-
-	if (!error && (inode->i_state & I_LINKABLE)) {
-		spin_lock(&inode->i_lock);
-		inode->i_state &= ~I_LINKABLE;
-		spin_unlock(&inode->i_lock);
-	}
 	mutex_unlock(&inode->i_mutex);
 	if (!error)
 		fsnotify_link(dir, inode, new_dentry);
@@ -4006,7 +3994,7 @@ int vfs_rename2(struct vfsmount *mnt,
 	if (!error)
 		fsnotify_move(old_dir, new_dir, old_name.name, is_dir,
 			      new_dentry->d_inode, old_dentry);
-	release_dentry_name_snapshot(&old_name);
+	take_dentry_name_snapshot(&old_name, old_dentry);
 
 	return error;
 }

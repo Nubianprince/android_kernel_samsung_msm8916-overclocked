@@ -94,9 +94,8 @@ static ssize_t pcf2123_show(struct device *dev, struct device_attribute *attr,
 
 	r = container_of(attr, struct pcf2123_sysfs_reg, attr);
 
-	ret = kstrtoul(r->name, 16, &reg);
-	if (ret)
-		return ret;
+	if (strict_strtoul(r->name, 16, &reg))
+		return -EINVAL;
 
 	txbuf[0] = PCF2123_READ | reg;
 	ret = spi_write_then_read(spi, txbuf, 1, rxbuf, 1);
@@ -118,13 +117,9 @@ static ssize_t pcf2123_store(struct device *dev, struct device_attribute *attr,
 
 	r = container_of(attr, struct pcf2123_sysfs_reg, attr);
 
-	ret = kstrtoul(r->name, 16, &reg);
-	if (ret)
-		return ret;
-
-	ret = kstrtoul(buffer, 10, &val);
-	if (ret)
-		return ret;
+	if (strict_strtoul(r->name, 16, &reg)
+		|| strict_strtoul(buffer, 10, &val))
+		return -EINVAL;
 
 	txbuf[0] = PCF2123_WRITE | reg;
 	txbuf[1] = val;

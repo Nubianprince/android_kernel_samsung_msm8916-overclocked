@@ -263,10 +263,8 @@ static ssize_t store_selfballooning(struct device *dev,
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
 
-	err = kstrtoul(buf, 10, &tmp);
-	if (err)
-		return err;
-	if ((tmp != 0) && (tmp != 1))
+	err = strict_strtoul(buf, 10, &tmp);
+	if (err || ((tmp != 0) && (tmp != 1)))
 		return -EINVAL;
 
 	xen_selfballooning_enabled = !!tmp;
@@ -292,10 +290,8 @@ static ssize_t store_selfballoon_interval(struct device *dev,
 
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
-	err = kstrtoul(buf, 10, &val);
-	if (err)
-		return err;
-	if (val == 0)
+	err = strict_strtoul(buf, 10, &val);
+	if (err || val == 0)
 		return -EINVAL;
 	selfballoon_interval = val;
 	return count;
@@ -316,10 +312,8 @@ static ssize_t store_selfballoon_downhys(struct device *dev,
 
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
-	err = kstrtoul(buf, 10, &val);
-	if (err)
-		return err;
-	if (val == 0)
+	err = strict_strtoul(buf, 10, &val);
+	if (err || val == 0)
 		return -EINVAL;
 	selfballoon_downhysteresis = val;
 	return count;
@@ -341,10 +335,8 @@ static ssize_t store_selfballoon_uphys(struct device *dev,
 
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
-	err = kstrtoul(buf, 10, &val);
-	if (err)
-		return err;
-	if (val == 0)
+	err = strict_strtoul(buf, 10, &val);
+	if (err || val == 0)
 		return -EINVAL;
 	selfballoon_uphysteresis = val;
 	return count;
@@ -366,10 +358,8 @@ static ssize_t store_selfballoon_min_usable_mb(struct device *dev,
 
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
-	err = kstrtoul(buf, 10, &val);
-	if (err)
-		return err;
-	if (val == 0)
+	err = strict_strtoul(buf, 10, &val);
+	if (err || val == 0)
 		return -EINVAL;
 	selfballoon_min_usable_mb = val;
 	return count;
@@ -392,10 +382,8 @@ static ssize_t store_selfballoon_reserved_mb(struct device *dev,
 
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
-	err = kstrtoul(buf, 10, &val);
-	if (err)
-		return err;
-	if (val == 0)
+	err = strict_strtoul(buf, 10, &val);
+	if (err || val == 0)
 		return -EINVAL;
 	selfballoon_reserved_mb = val;
 	return count;
@@ -420,10 +408,8 @@ static ssize_t store_frontswap_selfshrinking(struct device *dev,
 
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
-	err = kstrtoul(buf, 10, &tmp);
-	if (err)
-		return err;
-	if ((tmp != 0) && (tmp != 1))
+	err = strict_strtoul(buf, 10, &tmp);
+	if (err || ((tmp != 0) && (tmp != 1)))
 		return -EINVAL;
 	frontswap_selfshrinking = !!tmp;
 	if (!was_enabled && !xen_selfballooning_enabled &&
@@ -449,10 +435,8 @@ static ssize_t store_frontswap_inertia(struct device *dev,
 
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
-	err = kstrtoul(buf, 10, &val);
-	if (err)
-		return err;
-	if (val == 0)
+	err = strict_strtoul(buf, 10, &val);
+	if (err || val == 0)
 		return -EINVAL;
 	frontswap_inertia = val;
 	frontswap_inertia_counter = val;
@@ -474,10 +458,8 @@ static ssize_t store_frontswap_hysteresis(struct device *dev,
 
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
-	err = kstrtoul(buf, 10, &val);
-	if (err)
-		return err;
-	if (val == 0)
+	err = strict_strtoul(buf, 10, &val);
+	if (err || val == 0)
 		return -EINVAL;
 	frontswap_hysteresis = val;
 	return count;

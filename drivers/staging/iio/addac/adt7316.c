@@ -412,13 +412,13 @@ static ssize_t adt7316_store_ad_channel(struct device *dev,
 	struct iio_dev *dev_info = dev_to_iio_dev(dev);
 	struct adt7316_chip_info *chip = iio_priv(dev_info);
 	u8 config2;
-	u8 data;
+	unsigned long data = 0;
 	int ret;
 
 	if (!(chip->config2 & ADT7316_AD_SINGLE_CH_MODE))
 		return -EPERM;
 
-	ret = kstrtou8(buf, 10, &data);
+	ret = strict_strtoul(buf, 10, &data);
 	if (ret)
 		return -EINVAL;
 
@@ -848,10 +848,10 @@ static ssize_t adt7316_store_DAC_2Vref_ch_mask(struct device *dev,
 	struct iio_dev *dev_info = dev_to_iio_dev(dev);
 	struct adt7316_chip_info *chip = iio_priv(dev_info);
 	u8 dac_config;
-	u8 data;
+	unsigned long data = 0;
 	int ret;
 
-	ret = kstrtou8(buf, 16, &data);
+	ret = strict_strtoul(buf, 16, &data);
 	if (ret || data > ADT7316_DA_2VREF_CH_MASK)
 		return -EINVAL;
 
@@ -903,13 +903,13 @@ static ssize_t adt7316_store_DAC_update_mode(struct device *dev,
 	struct iio_dev *dev_info = dev_to_iio_dev(dev);
 	struct adt7316_chip_info *chip = iio_priv(dev_info);
 	u8 dac_config;
-	u8 data;
+	unsigned long data;
 	int ret;
 
 	if (!(chip->config3 & ADT7316_DA_EN_VIA_DAC_LDCA))
 		return -EPERM;
 
-	ret = kstrtou8(buf, 10, &data);
+	ret = strict_strtoul(buf, 10, &data);
 	if (ret || data > ADT7316_DA_EN_MODE_MASK)
 		return -EINVAL;
 
@@ -958,7 +958,7 @@ static ssize_t adt7316_store_update_DAC(struct device *dev,
 	struct iio_dev *dev_info = dev_to_iio_dev(dev);
 	struct adt7316_chip_info *chip = iio_priv(dev_info);
 	u8 ldac_config;
-	u8 data;
+	unsigned long data;
 	int ret;
 
 	if (chip->config3 & ADT7316_DA_EN_VIA_DAC_LDCA) {
@@ -966,7 +966,7 @@ static ssize_t adt7316_store_update_DAC(struct device *dev,
 			ADT7316_DA_EN_MODE_LDAC)
 			return -EPERM;
 
-		ret = kstrtou8(buf, 16, &data);
+		ret = strict_strtoul(buf, 16, &data);
 		if (ret || data > ADT7316_LDAC_EN_DA_MASK)
 			return -EINVAL;
 
@@ -1104,11 +1104,11 @@ static ssize_t adt7316_store_DAC_internal_Vref(struct device *dev,
 	struct iio_dev *dev_info = dev_to_iio_dev(dev);
 	struct adt7316_chip_info *chip = iio_priv(dev_info);
 	u8 ldac_config;
-	u8 data;
+	unsigned long data;
 	int ret;
 
 	if ((chip->id & ID_FAMILY_MASK) == ID_ADT75XX) {
-		ret = kstrtou8(buf, 16, &data);
+		ret = strict_strtoul(buf, 16, &data);
 		if (ret || data > 3)
 			return -EINVAL;
 
@@ -1118,7 +1118,7 @@ static ssize_t adt7316_store_DAC_internal_Vref(struct device *dev,
 		else if (data & 0x2)
 			ldac_config |= ADT7516_DAC_CD_IN_VREF;
 	} else {
-		ret = kstrtou8(buf, 16, &data);
+		ret = strict_strtoul(buf, 16, &data);
 		if (ret)
 			return -EINVAL;
 
@@ -1306,11 +1306,11 @@ static ssize_t adt7316_show_temp_offset(struct adt7316_chip_info *chip,
 static ssize_t adt7316_store_temp_offset(struct adt7316_chip_info *chip,
 		int offset_addr, const char *buf, size_t len)
 {
-	int data;
+	long data;
 	u8 val;
 	int ret;
 
-	ret = kstrtoint(buf, 10, &data);
+	ret = strict_strtol(buf, 10, &data);
 	if (ret || data > 127 || data < -128)
 		return -EINVAL;
 
@@ -1467,7 +1467,7 @@ static ssize_t adt7316_store_DAC(struct adt7316_chip_info *chip,
 		int channel, const char *buf, size_t len)
 {
 	u8 msb, lsb, offset;
-	u16 data;
+	unsigned long data;
 	int ret;
 
 	if (channel >= ADT7316_DA_MSB_DATA_REGS ||
@@ -1479,7 +1479,7 @@ static ssize_t adt7316_store_DAC(struct adt7316_chip_info *chip,
 
 	offset = chip->dac_bits - 8;
 
-	ret = kstrtou16(buf, 10, &data);
+	ret = strict_strtoul(buf, 10, &data);
 	if (ret || data >= (1 << chip->dac_bits))
 		return -EINVAL;
 
@@ -1857,11 +1857,11 @@ static ssize_t adt7316_set_int_mask(struct device *dev,
 {
 	struct iio_dev *dev_info = dev_to_iio_dev(dev);
 	struct adt7316_chip_info *chip = iio_priv(dev_info);
-	u16 data;
+	unsigned long data;
 	int ret;
 	u8 mask;
 
-	ret = kstrtou16(buf, 16, &data);
+	ret = strict_strtoul(buf, 16, &data);
 	if (ret || data >= ADT7316_VDD_INT_MASK + 1)
 		return -EINVAL;
 
@@ -1928,7 +1928,7 @@ static inline ssize_t adt7316_set_ad_bound(struct device *dev,
 	struct iio_dev_attr *this_attr = to_iio_dev_attr(attr);
 	struct iio_dev *dev_info = dev_to_iio_dev(dev);
 	struct adt7316_chip_info *chip = iio_priv(dev_info);
-	int data;
+	long data;
 	u8 val;
 	int ret;
 
@@ -1936,7 +1936,7 @@ static inline ssize_t adt7316_set_ad_bound(struct device *dev,
 		this_attr->address > ADT7316_EX_TEMP_LOW)
 		return -EPERM;
 
-	ret = kstrtoint(buf, 10, &data);
+	ret = strict_strtol(buf, 10, &data);
 	if (ret)
 		return -EINVAL;
 

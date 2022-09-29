@@ -42,7 +42,6 @@ struct module_kobject {
 	struct module *mod;
 	struct kobject *drivers_dir;
 	struct module_param_attrs *mp;
-	struct completion *kobj_completion;
 };
 
 struct module_attribute {

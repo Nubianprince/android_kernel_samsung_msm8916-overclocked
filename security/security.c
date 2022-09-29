@@ -355,10 +355,10 @@ int security_inode_init_security(struct inode *inode, struct inode *dir,
 	if (unlikely(IS_PRIVATE(inode)))
 		return 0;
 
+	memset(new_xattrs, 0, sizeof new_xattrs);
 	if (!initxattrs)
 		return security_ops->inode_init_security(inode, dir, qstr,
 							 NULL, NULL, NULL);
-	memset(new_xattrs, 0, sizeof(new_xattrs));
 	lsm_xattr = new_xattrs;
 	ret = security_ops->inode_init_security(inode, dir, qstr,
 						&lsm_xattr->name,
@@ -373,14 +373,16 @@ int security_inode_init_security(struct inode *inode, struct inode *dir,
 		goto out;
 	ret = initxattrs(inode, new_xattrs, fs_data);
 out:
-	for (xattr = new_xattrs; xattr->value != NULL; xattr++)
+	for (xattr = new_xattrs; xattr->name != NULL; xattr++) {
+		kfree(xattr->name);
 		kfree(xattr->value);
+	}
 	return (ret == -EOPNOTSUPP) ? 0 : ret;
 }
 EXPORT_SYMBOL(security_inode_init_security);
 
 int security_old_inode_init_security(struct inode *inode, struct inode *dir,
-				     const struct qstr *qstr, const char **name,
+				     const struct qstr *qstr, char **name,
 				     void **value, size_t *len)
 {
 	if (unlikely(IS_PRIVATE(inode)))
@@ -848,6 +850,13 @@ void security_transfer_creds(struct cred *new, const struct cred *old)
 {
 	security_ops->cred_transfer(new, old);
 }
+
+void security_cred_getsecid(const struct cred *c, u32 *secid)
+{
+	*secid = 0;
+	security_ops->cred_getsecid(c, secid);
+}
+EXPORT_SYMBOL(security_cred_getsecid);
 
 int security_kernel_act_as(struct cred *new, u32 secid)
 {
@@ -1366,17 +1375,22 @@ int security_xfrm_policy_delete(struct xfrm_sec_ctx *ctx)
 	return security_ops->xfrm_policy_delete_security(ctx);
 }
 
-int security_xfrm_state_alloc(struct xfrm_state *x,
-			      struct xfrm_user_sec_ctx *sec_ctx)
+int security_xfrm_state_alloc(struct xfrm_state *x, struct xfrm_user_sec_ctx *sec_ctx)
 {
-	return security_ops->xfrm_state_alloc(x, sec_ctx);
+	return security_ops->xfrm_state_alloc_security(x, sec_ctx, 0);
 }
 EXPORT_SYMBOL(security_xfrm_state_alloc);
 
 int security_xfrm_state_alloc_acquire(struct xfrm_state *x,
 				      struct xfrm_sec_ctx *polsec, u32 secid)
 {
-	return security_ops->xfrm_state_alloc_acquire(x, polsec, secid);
+	if (!polsec)
+		return 0;
+	/*
+	 * We want the context to be taken from secid which is usually
+	 * from the sock.
+	 */
+	return security_ops->xfrm_state_alloc_security(x, NULL, secid);
 }
 
 int security_xfrm_state_delete(struct xfrm_state *x)

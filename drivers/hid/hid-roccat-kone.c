@@ -456,7 +456,7 @@ static ssize_t kone_sysfs_set_tcu(struct device *dev,
 	kone = hid_get_drvdata(dev_get_drvdata(dev));
 	usb_dev = interface_to_usbdev(to_usb_interface(dev));
 
-	retval = kstrtoul(buf, 10, &state);
+	retval = strict_strtoul(buf, 10, &state);
 	if (retval)
 		return retval;
 
@@ -545,7 +545,7 @@ static ssize_t kone_sysfs_set_startup_profile(struct device *dev,
 	kone = hid_get_drvdata(dev_get_drvdata(dev));
 	usb_dev = interface_to_usbdev(to_usb_interface(dev));
 
-	retval = kstrtoul(buf, 10, &new_startup_profile);
+	retval = strict_strtoul(buf, 10, &new_startup_profile);
 	if (retval)
 		return retval;
 

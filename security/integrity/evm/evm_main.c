@@ -417,7 +417,7 @@ int evm_inode_init_security(struct inode *inode,
 
 	evm_xattr->value = xattr_data;
 	evm_xattr->value_len = sizeof(*xattr_data);
-	evm_xattr->name = XATTR_EVM_SUFFIX;
+	evm_xattr->name = kstrdup(XATTR_EVM_SUFFIX, GFP_NOFS);
 	return 0;
 out:
 	kfree(xattr_data);

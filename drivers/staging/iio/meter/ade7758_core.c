@@ -269,9 +269,9 @@ static ssize_t ade7758_write_8bit(struct device *dev,
 {
 	struct iio_dev_attr *this_attr = to_iio_dev_attr(attr);
 	int ret;
-	u8 val;
+	long val;
 
-	ret = kstrtou8(buf, 10, &val);
+	ret = strict_strtol(buf, 10, &val);
 	if (ret)
 		goto error_ret;
 	ret = ade7758_spi_write_reg_8(dev, this_attr->address, val);
@@ -287,9 +287,9 @@ static ssize_t ade7758_write_16bit(struct device *dev,
 {
 	struct iio_dev_attr *this_attr = to_iio_dev_attr(attr);
 	int ret;
-	u16 val;
+	long val;
 
-	ret = kstrtou16(buf, 10, &val);
+	ret = strict_strtol(buf, 10, &val);
 	if (ret)
 		goto error_ret;
 	ret = ade7758_spi_write_reg_16(dev, this_attr->address, val);
@@ -517,11 +517,11 @@ static ssize_t ade7758_write_frequency(struct device *dev,
 		size_t len)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
-	u16 val;
+	unsigned long val;
 	int ret;
 	u8 reg, t;
 
-	ret = kstrtou16(buf, 10, &val);
+	ret = strict_strtol(buf, 10, &val);
 	if (ret)
 		return ret;
 
